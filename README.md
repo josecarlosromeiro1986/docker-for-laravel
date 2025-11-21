@@ -1,185 +1,158 @@
-# 📘 Projeto Laravel com Docker — Guia de Instalação
-
-Este README explica como configurar, iniciar e desenvolver este projeto Laravel utilizando Docker, incluindo:
-
-* Requisitos
-* Como fazer o build e subir os containers
-* Como executar o Composer dentro do container
-* Como configurar o ambiente
-* Como habilitar e utilizar o debug com Xdebug
+# Ambiente Docker para Laravel (Com Explicações)
+Este repositório fornece um ambiente Docker completo para desenvolvimento Laravel utilizando PHP-FPM 8.4, MySQL, Redis e Nginx.  
+Além disso, este README explica **para que serve cada arquivo, pasta e configuração** — ideal para quem quer entender o funcionamento completo do ambiente.
 
 ---
 
-## ✅ Requisitos
+# 📁 Estrutura do Projeto
 
-Antes de começar, instale:
-
-* **Docker**
-* **Docker Compose**
-* (Opcional) **VSCode** com:
-
-  * Extensão *PHP Debug*
-  * Extensão *Docker*
-
----
-
-## 📥 Clonando o Projeto
-
-Para obter o projeto pela primeira vez:
-
-```bash
-git clone <URL_DO_REPOSITORIO>
-cd <PASTA_DO_PROJETO>
-```
+/
+├── docker/                  → Contém os Dockerfiles e configurações dos serviços  
+│   ├── mysql/               → Configurações específicas do MySQL  
+│   ├── nginx/               → Configurações do servidor Nginx  
+│   ├── php/                 → Dockerfile e customizações do PHP  
+│   └── redis/               → Configurações do Redis  
+├── logs/                    → Todos os logs são armazenados aqui (fora dos containers)  
+│   ├── mysql/               → Logs do MySQL  
+│   ├── nginx/               → Logs de acesso e erro do Nginx  
+│   ├── php/                 → Logs de erro do PHP-FPM  
+│   └── redis/               → Logs do Redis  
+├── src/                     → A pasta onde o Laravel será instalado  
+├── docker-compose.yml       → Arquivo que orquestra todos os containers  
+└── README.md                → Você está aqui!
 
 ---
 
-## ▶️ Subindo o Ambiente
+# 🔧 Versões Utilizadas
 
-Na raiz do projeto, execute:
-
-```bash
-docker compose up -d --build
-```
-
-Isso irá iniciar:
-
-* PHP-FPM
-* Nginx
-* MySQL
-
-Após subir, o projeto estará disponível em:
-
-👉 **[http://localhost:8080](http://localhost:8080)**
+Serviço | Versão | Explicação
+------- | ------ | ----------
+Laravel | qualquer | Instalado dentro do container PHP
+PHP     | 8.4-fpm | Versão atual estável do PHP com FPM
+MySQL   | 8.0     | Banco mais utilizado com Laravel
+Redis   | latest  | Usado para cache/queue
+Nginx   | latest  | Servidor web eficiente para produção e dev
 
 ---
 
-## 📁 Estrutura da Aplicação
+# 🚀 docker-compose.yml (Explicação Completa)
 
-O código do Laravel fica dentro de:
+Este arquivo define todos os serviços do ambiente. Ele faz:
 
-```
-src/
-```
+- Cria containers para **app (PHP), nginx, mysql e redis**
+- Define volumes para persistir dados
+- Expõe portas para acesso local
+- Configura redes internas entre os serviços
 
 ---
 
-## 📦 Instalando dependências com Composer
+# ▶️ Subindo o Ambiente
 
-Para executar o Composer dentro do container PHP:
+docker-compose up -d
 
-```bash
+Isso faz o Docker:
+- Baixar as imagens necessárias
+- Buildar o container PHP personalizado
+- Subir todos os serviços em segundo plano
+
+---
+
+# 📥 Instalando o Laravel (explicado)
+
+Entre no container app (PHP):
+
+docker exec -it app bash
+
+Dentro dele:
+
+1. **Limpa a pasta** para garantir instalação limpa:
+rm -rf /var/www/* /var/www/.*
+
+2. **Instala o Laravel:**
+composer create-project laravel/laravel ./
+
+3. **Permissões (importantíssimo)**  
+Esses comandos permitem que o Nginx e o PHP-FPM escrevam nos diretórios necessários:
+
+chown -R $USER:www-data storage bootstrap/cache  
+chmod -R 775 storage bootstrap/cache
+
+4. **Configura variáveis de ambiente do banco (.env):**
+
+DB_CONNECTION=mysql  
+DB_HOST=mysql  
+DB_PORT=3306  
+DB_DATABASE=laravel  
+DB_USERNAME=laravel  
+DB_PASSWORD=laravel_pass  
+
+5. **Limpa cache e executa as migrations:**
+
+php artisan config:clear  
+php artisan migrate  
+
+---
+
+# 🌐 Acessos
+
+Item | Endereço | Explicação
+---- | -------- | ----------
+Aplicação | http://localhost:8080 | Nginx servindo o Laravel
+MySQL | porta 3306 | Acesso externo ao banco
+Redis | porta 6379 | Acesso de cache/filas
+
+---
+
+# 📝 Explicação dos Arquivos e Pastas
+
+## 📁 docker/php/Dockerfile
+- Define a imagem PHP usada
+- Instala extensões essenciais (pdo, mysql, redis, mbstring etc.)
+- Define o diretório de trabalho (/var/www)
+
+## 📁 docker/nginx/default.conf
+- Configura o Virtual Host
+- Aponta Nginx para /var/www/public (pasta pública do Laravel)
+- Define regras para acessar index.php via PHP-FPM
+
+## 📁 docker/mysql
+- Contém arquivos de inicialização do MySQL caso queira criar tabelas automaticamente
+
+## 📁 docker/redis
+- Define parâmetros customizados caso necessário  
+(por padrão funciona sem tocar)
+
+## 📁 logs/
+- Mantém logs persistentes fora dos containers  
+(se um container for apagado, os logs continuam)
+
+## 📁 src/
+- Onde o Laravel realmente fica  
+- Montado como volume dentro do container app
+
+---
+
+# 🔧 Comandos Úteis
+
+## Entrar no container da aplicação:
 docker compose exec app bash
-composer install
-```
 
----
-
-## ⚙️ Configuração do .env
-
-O arquivo `.env` dentro de `src/` deve conter:
-
-```
-DB_CONNECTION=mysql
-DB_HOST=mysql
-DB_PORT=3306
-DB_DATABASE=laravel
-DB_USERNAME=root
-DB_PASSWORD=root
-```
-
-Após editar, execute:
-
-```bash
-docker compose exec app php artisan config:clear
-```
-
----
-
-## 🗄️ Executando Migrações
-
-Para criar as tabelas no banco:
-
-```bash
-docker compose exec app php artisan migrate
-```
-
----
-
-## 🐞 Configurando Xdebug
-
-O Xdebug já está habilitado no container. Os seguintes parâmetros foram configurados:
-
-```
-xdebug.mode=debug,develop
-xdebug.start_with_request=yes
-xdebug.client_host=host.docker.internal
-xdebug.client_port=9003
-xdebug.var_display_max_children=-1
-xdebug.var_display_max_data=-1
-xdebug.var_display_max_depth=-1
-```
-
-Isso permite visualizar arrays/objetos completos sem cortes.
-
----
-
-## 🖥️ Configuração do Debug no VSCode
-
-No arquivo `.vscode/launch.json`, configure:
-
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Listen for Xdebug",
-      "type": "php",
-      "request": "launch",
-      "port": 9003,
-      "pathMappings": {
-        "/var/www": "${workspaceFolder}/src"
-      }
-    }
-  ]
-}
-```
-
-### Como usar
-
-1. Inicie o modo debug no VSCode (*Run → Start Debugging*)
-2. Coloque um breakpoint em qualquer controller, service ou rota
-3. Acesse a rota pelo navegador
-
----
-
-## 🐳 Comandos Úteis
-
-### Entrar no container da aplicação:
-
-```bash
-docker compose exec app bash
-```
-
-### Entrar no MySQL:
-
-```bash
-docker compose exec mysql bash
+## Entrar no MySQL:
+docker compose exec mysql bash  
 mysql -u root -p
-```
 
-### Derrubar tudo:
-
-```bash
+## Derrubar tudo:
 docker compose down
-```
 
-### Subir novamente:
-
-```bash
+## Subir novamente:
 docker compose up -d
-```
 
 ---
 
-## ✔ Ambiente pronto!
+# 📚 Documentação Oficial
+https://laravel.com/docs
+
+---
+
+# 📄 Licença
+MIT License
