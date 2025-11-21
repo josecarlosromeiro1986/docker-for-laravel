@@ -57,21 +57,31 @@ Isso faz o Docker:
 
 Entre no container app (PHP):
 
-```docker exec -it app bash```
+```
+docker exec -it app bash
+```
 
 Dentro dele:
 
 1. **Limpa a pasta** para garantir instalação limpa:
-```rm -rf /var/www/* /var/www/.*```
+```
+rm -rf /var/www/* /var/www/.*
+```
 
 2. **Instala o Laravel:**
-```composer create-project laravel/laravel ./```
+```
+composer create-project laravel/laravel ./
+```
 
 3. **Permissões (importantíssimo)**  
 Esses comandos permitem que o Nginx e o PHP-FPM escrevam nos diretórios necessários:
 
-```chown -R $USER:www-data storage bootstrap/cache```
-```chmod -R 775 storage bootstrap/cache```
+```
+chown -R $USER:www-data storage bootstrap/cache
+```
+```
+chmod -R 775 storage bootstrap/cache
+```
 
 4. **Configura variáveis de ambiente do banco (.env):**
 
@@ -86,8 +96,12 @@ DB_PASSWORD=laravel_pass
 
 5. **Limpa cache e executa as migrations:**
 
-```php artisan config:clear```
-```php artisan migrate```
+```
+php artisan config:clear
+```
+```
+php artisan migrate
+```
 
 ---
 
@@ -133,17 +147,27 @@ Redis | porta 6379 | Acesso de cache/filas
 # 🔧 Comandos Úteis
 
 ## Entrar no container da aplicação:
-```docker compose exec app bash```
+```
+docker compose exec app bash
+```
 
 ## Entrar no MySQL:
-```docker compose exec mysql bash```
-```mysql -u root -p```
+```
+docker compose exec mysql bash
+```
+```
+mysql -u root -p
+```
 
 ## Derrubar tudo:
-```docker compose down```
+```
+docker compose down
+```
 
 ## Subir novamente:
-```docker compose up -d```
+```
+docker compose up -d
+```
 
 ---
 
