@@ -6,7 +6,7 @@ Além disso, este README explica **para que serve cada arquivo, pasta e configur
 
 ## 📁 Estrutura do Projeto
 
-/
+```
 ├── docker/ → Contém os Dockerfiles e configurações dos serviços  
 │   ├── mysql/ → Configurações específicas do MySQL  
 │   ├── nginx/ → Configurações do servidor Nginx  
@@ -24,6 +24,7 @@ Além disso, este README explica **para que serve cada arquivo, pasta e configur
 ├── docker-compose.yml → Arquivo que orquestra todos os containers  
 │
 └── README.md → Você está aqui!
+```
 
 ---
 
